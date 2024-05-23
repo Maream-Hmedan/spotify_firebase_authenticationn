@@ -1,50 +1,52 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
-import 'package:spotify/screens/bottom_nav_bar/bottom_nav_bar_screen.dart';
-import 'package:spotify/screens/register/register_screen.dart';
+import 'package:spotify/screens/login/login_screen.dart';
 import 'package:spotify/utils/helpers/app_navigation.dart';
 import 'package:spotify/utils/ui/common_views.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  bool rememberMe = false;
+class _RegisterScreenState extends State<RegisterScreen> {
+
   final TextEditingController _emailTextEditingController =
-      TextEditingController();
+  TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
 
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final FocusNode _mobileFocus = FocusNode();
+
+  final TextEditingController _fullNameController = TextEditingController();
+  final FocusNode _fullNameFocus = FocusNode();
+
   final TextEditingController _passwordTextEditingController =
-      TextEditingController();
+  TextEditingController();
   final FocusNode _passwordFocusNode = FocusNode();
   final GlobalKey<FormState> _key = GlobalKey();
 
+  final TextEditingController _confirmPasswordController =
+  TextEditingController();
+  final FocusNode _confirmPasswordFocus = FocusNode();
+
 
   bool showErrorEmail = false;
+  bool showErrorName = false;
+  bool showErrorNumber = false;
 
   bool showErrorPassword = false;
+  bool showErrorConfigPassword = false;
 
   @override
   void initState() {
     super.initState();
-    getRememberMe();
-    setState(() {});
   }
 
-  getRememberMe() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (rememberMe) {
-      _emailTextEditingController.text = prefs.getString("email") ?? "";
-      _passwordTextEditingController.text = prefs.getString("password") ?? "";
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
-                        height: 53.h,
+                        height: 55.h,
                         margin: const EdgeInsets.all(20),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 23, vertical: 23),
@@ -110,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const Text(
-                              "Login Account",
+                              "Register Account",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontWeight: FontWeight.w700,
@@ -123,13 +125,38 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(
                               height: 5.h,
                               child: CommonViews().createTextFormField(
+                                controller: _fullNameController,
+                                focusNode: _fullNameFocus,
+                                label: 'Username',
+                                keyboardType: TextInputType.name,
+                                suffixIcon: const Icon(Icons.person_outline),
+                                onSubmitted: (v) {
+                                  _emailFocusNode.requestFocus();
+                                },
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) {
+                                    return "This Field is required";
+                                  }
+                                  if (v.length < 5) {
+                                    return "full name must be greater than 5 chars";
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              height: 1.h,
+                            ),
+                            SizedBox(
+                              height: 5.h,
+                              child: CommonViews().createTextFormField(
                                 controller: _emailTextEditingController,
                                 focusNode: _emailFocusNode,
-                                label: 'Email or Username',
+                                label: 'Email ',
                                 keyboardType: TextInputType.emailAddress,
                                 suffixIcon: const Icon(Icons.email_outlined),
                                 onSubmitted: (v) {
-                                  _passwordFocusNode.requestFocus();
+                                  _mobileFocus.requestFocus();
                                 },
                                 validator: (v) {
                                   if (v == null || v.isEmpty) {
@@ -141,8 +168,38 @@ class _LoginScreenState extends State<LoginScreen> {
                                   }
                                   return null;
                                 },
-                                errorText:
-                                    showErrorEmail ? "Enter Valid Email" : null,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 1.h,
+                            ),
+                            SizedBox(
+                              height: 5.h,
+                              child: CommonViews().createTextFormField(
+                                controller: _mobileNumberController,
+                                focusNode: _mobileFocus,
+                                label: 'Your Phone Number',
+                                keyboardType: TextInputType.phone,
+                                suffixIcon: const Icon(Icons.phone_android),
+                                onSubmitted: (v) {
+                                  _passwordFocusNode.requestFocus();
+                                },
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) {
+                                    return "this field is required";
+                                  }
+                                  if (v.length < 9) {
+                                    return "mobile must be greater than 9 chars";
+                                  }
+                                  if (v.contains(" ")) {
+                                    return "mobile must not include white space";
+                                  }
+                                  if (!v.startsWith("07")) {
+                                    return "mobile number not correct";
+                                  }
+                                  return null;
+                                },
+
                               ),
                             ),
                             SizedBox(
@@ -156,7 +213,36 @@ class _LoginScreenState extends State<LoginScreen> {
                                 label: "Password",
                                 keyboardType: TextInputType.text,
                                 suffixIcon:
-                                    const Icon(Icons.visibility_outlined),
+                                const Icon(Icons.visibility_outlined),
+                                inputAction: TextInputAction.go,
+                                isObscure: true,
+                                onSubmitted: (value) {
+                                  _passwordFocusNode.requestFocus();
+                                },
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) {
+                                    return "This Field is required";
+                                  }
+                                  if (!CommonViews().validPassword(
+                                      _passwordTextEditingController.text)) {
+                                    return "Please Enter Strong password more than 6 characters";
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              height: 1.h,
+                            ),
+                            SizedBox(
+                              height: 5.h,
+                              child: CommonViews().createTextFormField(
+                                controller: _confirmPasswordController,
+                                focusNode: _confirmPasswordFocus,
+                                label: "confirm Password",
+                                keyboardType: TextInputType.text,
+                                suffixIcon:
+                                const Icon(Icons.visibility_outlined),
                                 inputAction: TextInputAction.go,
                                 isObscure: true,
                                 onSubmitted: (value) {
@@ -170,52 +256,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                       _passwordTextEditingController.text)) {
                                     return "Please Enter Strong password more than 6 characters";
                                   }
+                                  if(v!=_passwordTextEditingController.text){
+                                    return "passwords not match";
+                                  }
                                   return null;
                                 },
-                                errorText: showErrorPassword
-                                    ? " Enter Valid Password"
-                                    : null,
                               ),
                             ),
-                            SwitchListTile.adaptive(
-                              value: rememberMe,
-                              onChanged: ((bool value) {
-                                setState(() {
-                                  rememberMe = value;
-                                });
-                              }),
-                              contentPadding: const EdgeInsets.all(0),
-                              title: const Text('Remember me',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.blueGrey)),
+                            SizedBox(
+                              height: 1.h,
                             ),
                             CommonViews().commonButton(
                                 onPressed: () async {
                                   // _key.currentState!.validate()
 
-                                  if (true) {
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    await prefs.setBool(
-                                        "rememberME", rememberMe);
-                                    if (rememberMe) {
-                                      await prefs.setString("email",
-                                          _emailTextEditingController.text);
-                                      await prefs.setString("password",
-                                          _passwordTextEditingController.text);
-                                    }
+                                  if (_key.currentState!.validate()) {
                                     AppNavigator.of(context)
-                                        .pushReplacement(const BottomNavBarScreen());
+                                        .push(const LoginScreen());
                                   }
                                 },
-                                title: 'LOG IN',
+                                title: 'Sign Up ',
                                 height: 38),
-                             SizedBox(
+                            SizedBox(
                               height: 1.h,
                             ),
-                             Row(
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Expanded(
@@ -238,10 +303,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const Expanded(
                                     child: Divider(
-                                  thickness: 1,
-                                  height: 1,
-                                  color: Colors.blueGrey,
-                                )),
+                                      thickness: 1,
+                                      height: 1,
+                                      color: Colors.blueGrey,
+                                    )),
                               ],
                             ),
                             SizedBox(
@@ -254,7 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 40,
                                     child: Image.asset(
                                         'assets/images/google+.png')),
-                                 SizedBox(
+                                SizedBox(
                                   width: 2.w,
                                 ),
                                 SizedBox(
@@ -263,28 +328,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                         'assets/images/facebook.png')),
                               ],
                             ),
-                            SizedBox(
-                              height: 2.h,
-                            ),
-                            const Text(
-                              'Forget password?',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.blueGrey),
-                              textAlign: TextAlign.center,
-                            ),
                           ],
                         ),
                       ),
-                       SizedBox(
+                      SizedBox(
                         height: 1.h,
                       ),
-                       Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'Don’t have an account?',
+                            'Already Have Account',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
@@ -295,10 +349,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           GestureDetector(
                             onTap: (){
-                              AppNavigator.of(context).push(const RegisterScreen());
+                              AppNavigator.of(context).push(const LoginScreen());
                             },
                             child: const Text(
-                              'Sign up now',
+                              'Sign In Now',
                               style: TextStyle(
                                   color: Colors.blueGrey,
                                   fontWeight: FontWeight.w700),
