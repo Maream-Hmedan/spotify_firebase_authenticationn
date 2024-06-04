@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class ColorConstants{
+class AppColors{
   static Color starterWhite = hexToColor('#DADADA');
   static Color primaryColor = hexToColor('#1ED760');
   static Color cardBackGroundColor = hexToColor('#0E0E0F');

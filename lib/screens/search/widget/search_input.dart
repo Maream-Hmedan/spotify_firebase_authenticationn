@@ -14,7 +14,7 @@ class _SearchInputState extends State<SearchInput> {
     return TextField(
       decoration: InputDecoration(
       filled: true,
-      fillColor:ColorConstants.cardBackGroundColor,
+      fillColor:AppColors.cardBackGroundColor,
       border:OutlineInputBorder(borderRadius: BorderRadius.circular(10),
       ) ,
       prefixIcon: const Icon(Icons.search,color: Colors.white),

@@ -29,7 +29,7 @@ class _TopMixesState extends State<TopMixes> {
             width: 37.w,
             height: 30.h,
             decoration: BoxDecoration(
-              color: ColorConstants.cardBackGroundColor,
+              color: AppColors.cardBackGroundColor,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
@@ -70,13 +70,13 @@ class _TopMixesState extends State<TopMixes> {
                 ),
                 const SizedBox(height: 8,),
                 Text(top['title'], style: TextStyle(
-                  color: ColorConstants.starterWhite,
+                  color: AppColors.starterWhite,
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                 )),
                 const SizedBox(height: 2,),
                 Text(top['description'], style: TextStyle(
-                  color: ColorConstants.starterWhite,
+                  color: AppColors.starterWhite,
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                 ))

@@ -271,6 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   // _key.currentState!.validate()
 
                                   if (_key.currentState!.validate()) {
+
                                     AppNavigator.of(context)
                                         .push(const LoginScreen());
                                   }

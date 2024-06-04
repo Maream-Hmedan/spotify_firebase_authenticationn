@@ -43,7 +43,7 @@ class _SearchPageState extends State<SearchPage> {
                   children: searchList.map((search) => Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                        color: ColorConstants.cardBackGroundColor,
+                        color: AppColors.cardBackGroundColor,
                         borderRadius: BorderRadius.circular(10)
                     ),
                     child:Text(search,style: const TextStyle(

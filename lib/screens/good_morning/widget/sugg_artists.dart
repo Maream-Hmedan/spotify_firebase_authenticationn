@@ -27,7 +27,7 @@ class _SuggestedArtistsState extends State<SuggestedArtists> {
             margin: const EdgeInsets.symmetric(horizontal: 4),
             width: 35.w,
             decoration: BoxDecoration(
-              color: ColorConstants.cardBackGroundColor,
+              color: AppColors.cardBackGroundColor,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
@@ -40,7 +40,7 @@ class _SuggestedArtistsState extends State<SuggestedArtists> {
                 ),
                 const SizedBox(height: 4,),
                 Text(artist['name'], style: TextStyle(
-                  color: ColorConstants.starterWhite,
+                  color: AppColors.starterWhite,
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                 ),

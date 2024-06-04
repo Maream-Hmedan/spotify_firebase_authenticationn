@@ -24,7 +24,7 @@ class _PodcastState extends State<Podcast> {
             final pod = podCast[index];
         return Container(
           decoration: BoxDecoration(
-              color: ColorConstants.cardBackGroundColor,
+              color: AppColors.cardBackGroundColor,
               borderRadius: BorderRadius.circular(10)
           ),
           padding: const EdgeInsets.only(bottom: 0,left:15,right:15,top:15),

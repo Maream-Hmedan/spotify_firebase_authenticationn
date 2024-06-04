@@ -25,7 +25,7 @@ class _PlayListState extends State<PlayList> {
         final play=playList[index];
         return Container(
           decoration: BoxDecoration(
-              color: ColorConstants.cardBackGroundColor,
+              color: AppColors.cardBackGroundColor,
               borderRadius: BorderRadius.circular(10)
           ),
           padding: const EdgeInsets.only(top: 10,),
@@ -43,7 +43,7 @@ class _PlayListState extends State<PlayList> {
             ),
                 const SizedBox(height: 8,),
                 Text(play['title'], style: TextStyle(
-                  color: ColorConstants.starterWhite,
+                  color: AppColors.starterWhite,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 )),
