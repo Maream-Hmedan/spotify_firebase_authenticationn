@@ -16,4 +16,7 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
-![CHEESE!](C:\Users\owner\OneDrive\Pictures\spotify_login.png)
+![CHEESE!](assets/images/spotify_login.png)
+
+
+
