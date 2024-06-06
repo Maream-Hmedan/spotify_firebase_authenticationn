@@ -17,6 +17,11 @@ samples, guidance on mobile development, and a full API reference.
 
 
 ![CHEESE!](assets/images/spotify_login.png)
+![CHEESE!](assets/images/spotify_register.png)
+![CHEESE!](assets/images/first_screen.png)
+![CHEESE!](assets/images/2_screen.png)
+![CHEESE!](assets/images/3_screen.png)
+
 
 
 
