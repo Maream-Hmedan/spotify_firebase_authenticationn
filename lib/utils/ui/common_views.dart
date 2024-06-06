@@ -71,7 +71,7 @@ class CommonViews {
 
   bool validPassword(String value) {
     String pattern =
-        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{,3}$';
+        r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$";
     RegExp regExp = RegExp(pattern);
     return regExp.hasMatch(value);
   }

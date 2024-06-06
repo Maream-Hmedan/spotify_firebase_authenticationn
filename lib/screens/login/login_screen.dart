@@ -1,11 +1,18 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
+import 'package:spotify/configuration/app_colors.dart';
+import 'package:spotify/configuration/current_session.dart';
+import 'package:spotify/model/user_model.dart';
 import 'package:spotify/screens/bottom_nav_bar/bottom_nav_bar_screen.dart';
 import 'package:spotify/screens/register/register_screen.dart';
 import 'package:spotify/utils/helpers/app_navigation.dart';
+import 'package:spotify/utils/helpers/firebase_error_messages.dart';
 import 'package:spotify/utils/ui/common_views.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,31 +24,25 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool rememberMe = false;
-  final TextEditingController _emailTextEditingController =
+  final TextEditingController _userNameTextEditingController =
       TextEditingController();
-  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _userNameFocusNode = FocusNode();
 
   final TextEditingController _passwordTextEditingController =
       TextEditingController();
   final FocusNode _passwordFocusNode = FocusNode();
   final GlobalKey<FormState> _key = GlobalKey();
 
-
-  bool showErrorEmail = false;
-
-  bool showErrorPassword = false;
-
   @override
   void initState() {
     super.initState();
     getRememberMe();
-    setState(() {});
   }
 
   getRememberMe() async {
     final prefs = await SharedPreferences.getInstance();
     if (rememberMe) {
-      _emailTextEditingController.text = prefs.getString("email") ?? "";
+      _userNameTextEditingController.text = prefs.getString("email") ?? "";
       _passwordTextEditingController.text = prefs.getString("password") ?? "";
     }
   }
@@ -123,11 +124,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(
                               height: 5.h,
                               child: CommonViews().createTextFormField(
-                                controller: _emailTextEditingController,
-                                focusNode: _emailFocusNode,
-                                label: 'Email or Username',
-                                keyboardType: TextInputType.emailAddress,
-                                suffixIcon: const Icon(Icons.email_outlined),
+                                controller: _userNameTextEditingController,
+                                focusNode: _userNameFocusNode,
+                                label: 'Username',
+                                keyboardType: TextInputType.name,
+                                suffixIcon: const Icon(Icons.person_outline),
                                 onSubmitted: (v) {
                                   _passwordFocusNode.requestFocus();
                                 },
@@ -135,14 +136,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (v == null || v.isEmpty) {
                                     return "This Field is required";
                                   }
-                                  if (!CommonViews().isEmail(
-                                      _emailTextEditingController.text)) {
-                                    return "Please Enter Valid Email";
-                                  }
                                   return null;
                                 },
-                                errorText:
-                                    showErrorEmail ? "Enter Valid Email" : null,
                               ),
                             ),
                             SizedBox(
@@ -172,9 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   }
                                   return null;
                                 },
-                                errorText: showErrorPassword
-                                    ? " Enter Valid Password"
-                                    : null,
                               ),
                             ),
                             SwitchListTile.adaptive(
@@ -193,29 +185,77 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             CommonViews().commonButton(
                                 onPressed: () async {
-                                  // _key.currentState!.validate()
+                                  try {
+                                    if (_key.currentState!.validate()) {
+                                      final prefs =
+                                          await SharedPreferences.getInstance();
+                                      await prefs.setBool(
+                                          "rememberME", rememberMe);
+                                      if (rememberMe) {
+                                        await prefs.setString(
+                                            "email",
+                                            _userNameTextEditingController
+                                                .text);
+                                        await prefs.setString(
+                                            "password",
+                                            _passwordTextEditingController
+                                                .text);
+                                      }
 
-                                  if (true) {
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    await prefs.setBool(
-                                        "rememberME", rememberMe);
-                                    if (rememberMe) {
-                                      await prefs.setString("email",
-                                          _emailTextEditingController.text);
-                                      await prefs.setString("password",
-                                          _passwordTextEditingController.text);
+                                      var databaseResult = await FirebaseFirestore
+                                          .instance
+                                          .collection("Users")
+                                          .where("userName",
+                                              isEqualTo:
+                                                  _userNameTextEditingController
+                                                      .text)
+                                          .get();
+                                      UserModel model =
+                                          UserModel.fromQueryDocumentSnapShot(
+                                              databaseResult.docs.first);
+                                      String email = model.email;
+                                      UserCredential result = await FirebaseAuth
+                                          .instance
+                                          .signInWithEmailAndPassword(
+                                        email: email,
+                                        password:
+                                            _passwordTextEditingController.text,
+                                      );
+                                      if (result.user != null) {
+                                        if (result.user!.emailVerified) {
+                                          CurrentSession().setUser(model);
+                                          AppNavigator.of(context)
+                                              .pushReplacement(
+                                                  const BottomNavBarScreen());
+                                        } else {
+                                          showToast(
+                                              "Your Email Is Not Verified",
+                                              backgroundColor:
+                                                  AppColors.errorColor,
+                                              duration:
+                                                  const Duration(seconds: 5));
+                                        }
+                                      }
                                     }
-                                    AppNavigator.of(context)
-                                        .pushReplacement(const BottomNavBarScreen());
+                                  } catch (e) {
+                                    if (e is FirebaseAuthException) {
+                                      showToast(
+                                          FirebaseErrors.getMessage(e.code),
+                                          backgroundColor:
+                                              AppColors.cardBackGroundColor,
+                                          duration: const Duration(seconds: 5));
+                                    }
+                                    showToast(e.toString(),
+                                        backgroundColor: AppColors.errorColor,
+                                        duration: const Duration(seconds: 5));
                                   }
                                 },
                                 title: 'LOG IN',
                                 height: 38),
-                             SizedBox(
+                            SizedBox(
                               height: 1.h,
                             ),
-                             Row(
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Expanded(
@@ -254,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 40,
                                     child: Image.asset(
                                         'assets/images/google+.png')),
-                                 SizedBox(
+                                SizedBox(
                                   width: 2.w,
                                 ),
                                 SizedBox(
@@ -277,10 +317,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-                       SizedBox(
+                      SizedBox(
                         height: 1.h,
                       ),
-                       Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
@@ -294,8 +334,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 4.w,
                           ),
                           GestureDetector(
-                            onTap: (){
-                              AppNavigator.of(context).push(const RegisterScreen());
+                            onTap: () {
+                              AppNavigator.of(context)
+                                  .push(const RegisterScreen());
                             },
                             child: const Text(
                               'Sign up now',

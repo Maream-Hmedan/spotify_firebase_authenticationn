@@ -1,9 +1,17 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:sizer/sizer.dart';
+import 'package:spotify/configuration/app_colors.dart';
+import 'package:spotify/model/user_model.dart';
 import 'package:spotify/screens/login/login_screen.dart';
 import 'package:spotify/utils/helpers/app_navigation.dart';
+import 'package:spotify/utils/helpers/firebase_error_messages.dart';
+import 'package:spotify/utils/helpers/progress_hud.dart';
 import 'package:spotify/utils/ui/common_views.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -14,9 +22,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-
   final TextEditingController _emailTextEditingController =
-  TextEditingController();
+      TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
 
   final TextEditingController _mobileNumberController = TextEditingController();
@@ -26,14 +33,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final FocusNode _fullNameFocus = FocusNode();
 
   final TextEditingController _passwordTextEditingController =
-  TextEditingController();
+      TextEditingController();
   final FocusNode _passwordFocusNode = FocusNode();
   final GlobalKey<FormState> _key = GlobalKey();
 
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
   final FocusNode _confirmPasswordFocus = FocusNode();
-
 
   bool showErrorEmail = false;
   bool showErrorName = false;
@@ -46,7 +52,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void initState() {
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +204,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   return null;
                                 },
-
                               ),
                             ),
                             SizedBox(
@@ -213,11 +217,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 label: "Password",
                                 keyboardType: TextInputType.text,
                                 suffixIcon:
-                                const Icon(Icons.visibility_outlined),
+                                    const Icon(Icons.visibility_outlined),
                                 inputAction: TextInputAction.go,
                                 isObscure: true,
                                 onSubmitted: (value) {
-                                  _passwordFocusNode.requestFocus();
+                                  _confirmPasswordFocus.requestFocus();
                                 },
                                 validator: (v) {
                                   if (v == null || v.isEmpty) {
@@ -242,7 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 label: "confirm Password",
                                 keyboardType: TextInputType.text,
                                 suffixIcon:
-                                const Icon(Icons.visibility_outlined),
+                                    const Icon(Icons.visibility_outlined),
                                 inputAction: TextInputAction.go,
                                 isObscure: true,
                                 onSubmitted: (value) {
@@ -254,9 +258,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   if (!CommonViews().validPassword(
                                       _passwordTextEditingController.text)) {
-                                    return "Please Enter Strong password more than 6 characters";
+                                    return "Please Enter Strong password more than 6 characters and ues special characters ";
                                   }
-                                  if(v!=_passwordTextEditingController.text){
+                                  if (v !=
+                                      _passwordTextEditingController.text) {
                                     return "passwords not match";
                                   }
                                   return null;
@@ -268,13 +273,80 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             CommonViews().commonButton(
                                 onPressed: () async {
-                                  // _key.currentState!.validate()
-
                                   if (_key.currentState!.validate()) {
+                                    ProgressHud.shared.startLoading(context);
+                                    try {
+                                      var acs = ActionCodeSettings(
+                                          url: 'https://www.example.com',
+                                          handleCodeInApp: true,
+                                          iOSBundleId: 'com.example.ios',
+                                          androidPackageName:
+                                              'com.example.android',
+                                          // installIfNotAvailable
+                                          androidInstallApp: true,
+                                          // minimumVersion
+                                          androidMinimumVersion: '12');
 
-                                    AppNavigator.of(context)
-                                        .push(const LoginScreen());
+                                      UserCredential result = await FirebaseAuth
+                                          .instance
+                                          .createUserWithEmailAndPassword(
+                                        email: _emailTextEditingController.text,
+                                        password:
+                                            _passwordTextEditingController.text,
+                                      );
+                                      if (result.user != null) {
+                                        await result.user!
+                                            .sendEmailVerification(acs);
+                                        _saveDataToFireStore(result.user!.uid);
+                                        ProgressHud.shared.stopLoading();
+                                        showToast("Please Verify Your Email",
+                                            backgroundColor:
+                                                AppColors.primaryColor,
+                                            duration:
+                                                const Duration(seconds: 2));
+                                        AppNavigator.of(context).pop();
+                                        AppNavigator.of(context)
+                                            .push(const LoginScreen());
+                                      } else {
+                                        if (kDebugMode) {
+                                          print("error");
+                                        }
+                                      }
+                                    } on FirebaseAuthException catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                      ProgressHud.shared.stopLoading();
+                                      showToastWidget(
+                                          Container(
+                                            width: 80.w,
+                                            height: 10.h,
+                                            padding: const EdgeInsets.all(8),
+                                              decoration:  BoxDecoration(
+                                                  borderRadius: const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),color: AppColors.errorColor,),
+                                         child: Center(
+                                                child: Text(
+                                                    FirebaseErrors.getMessage(
+                                                            e.code) )),
+                                          ),
+                                          duration: const Duration(seconds: 5));
+                                    } catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                      ProgressHud.shared.stopLoading();
+                                      showToast(e.toString(),
+                                          backgroundColor: Colors.red);
+                                      showToastWidget(SizedBox(
+                                        height: 80,
+                                        width: 100.w,
+                                        child: Text(e.toString()),
+                                      ));
+                                    }
                                   }
+
                                 },
                                 title: 'Sign Up ',
                                 height: 38),
@@ -304,10 +376,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 const Expanded(
                                     child: Divider(
-                                      thickness: 1,
-                                      height: 1,
-                                      color: Colors.blueGrey,
-                                    )),
+                                  thickness: 1,
+                                  height: 1,
+                                  color: Colors.blueGrey,
+                                )),
                               ],
                             ),
                             SizedBox(
@@ -349,8 +421,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: 4.w,
                           ),
                           GestureDetector(
-                            onTap: (){
-                              AppNavigator.of(context).push(const LoginScreen());
+                            onTap: () {
+                              AppNavigator.of(context)
+                                  .push(const LoginScreen());
                             },
                             child: const Text(
                               'Sign In Now',
@@ -374,4 +447,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+
+
+void _saveDataToFireStore(String uid) async {
+  UserModel model = UserModel(
+      email: _emailTextEditingController.text,
+      mobile: _mobileNumberController.text,
+      uid: uid,
+      username:_fullNameController.text,
+      isVerify: false);
+
+
+  FirebaseFirestore.instance.collection("Users").add(model.toJson());
+}
 }
